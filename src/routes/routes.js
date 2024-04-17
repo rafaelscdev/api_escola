@@ -4,20 +4,11 @@ const Curso = require('../models/Curso')
 
 const routes = new Router()
 
-// GET - Lista alguma coisa
-// POST - Criar/adicionar algo
-// PUT - Atualizar algo
-// DELETE - Deleta algo
-// PATCH - depois
-
-// criar uma rota
-// tipo
-// path
-// implementacao
-
 routes.get('/bem_vindo', (req, res) => {
     res.json({ name: 'Bem vindo' })
 })
+
+/* ----  Rotas dos Alunos ---- */
 
 routes.post('/alunos', async (req, res) => {
     try {
@@ -28,9 +19,6 @@ routes.post('/alunos', async (req, res) => {
         if (!nome) {
             return res.status(400).json({ messagem: 'O nome é obrigatório' })
         }
-
-        // momentJs
-        // date-fns
 
         if (!data_nascimento) {
             return res.status(400).json({ messagem: 'A data de nascimento é obrigatória' })
@@ -58,6 +46,28 @@ routes.get('/alunos', async (req, res) => {
     const alunos = await Aluno.findAll()
     res.json(alunos)
 })
+
+routes.get('/alunos/:id', async (req, res) => {
+    try {
+
+        const { id } = req.params
+
+        const aluno = await Aluno.findByPk(id)
+
+        if(!aluno){
+            return res.status(404).json({ message: "Usuário não encontrado!"})
+        }
+
+        res.json(aluno)
+        
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({ error: 'Não possível listar o aluno especifico',
+                              error: error})
+    }
+})
+
+/* ----  Rotas dos Cursos ---- */
 
 routes.post('/cursos', async (req, res) => {
     try {
@@ -99,18 +109,6 @@ routes.get('/cursos', async (req, res) => {
 
     res.json(cursos)
 })
-
-// BODY PARAMS POST/PUT
-// ROUTE PARAMS /1 PUT e DELETE , GET
-// QUERY PARAMS ?id=1 GET
-
-
-/*
-POST
-DELETE
-GET
-PUT
-*/
 
 routes.delete('/cursos/:id', (req,res) => {
     const {id} =  req.params
