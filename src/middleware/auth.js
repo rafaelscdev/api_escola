@@ -8,7 +8,6 @@ async function auth(req, res, next) {
 
         const { authorization } = req.headers
 
-        console.log(authorization)
         req['payload'] = verify(authorization, process.env.SECRET_JWT)
 
         next()
