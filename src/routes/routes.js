@@ -2,6 +2,9 @@ const { Router, query } = require('express') //
 const Aluno = require('../models/Aluno')
 const Curso = require('../models/Curso')
 
+const { auth } = require('../middleware/auth')
+const { sign } = require('jsonwebtoken')
+
 const routes = new Router()
 
 routes.get('/bem_vindo', (req, res) => {
@@ -16,11 +19,11 @@ routes.post('/login', async (req, res) => {
         const password = req.body.password
 
         if (!email) {
-            return res.status(400).json({ messagem: 'O email é obrigatório' })
+            return res.status(400).json({ message: 'O email é obrigatório' })
         }
 
         if (!password) {
-            return res.status(400).json({ messagem: 'O password é obrigatório' })
+            return res.status(400).json({ message: 'O password é obrigatório' })
         }
 
         const aluno = await Aluno.findOne({
@@ -28,13 +31,17 @@ routes.post('/login', async (req, res) => {
         })
 
         if(!aluno){
-            return res.status(404).json({ messagem: 'Nenhum aluno corresponde a email e senha fornecidos!' })
+            return res.status(404).json({ error: 'Nenhum aluno corresponde a email e senha fornecidos!' })
         }
 
-        res.status(200).json({"Esse é teu token JWT: JWT"})
+        const payload = {sub: aluno.id, email: aluno.email, nome: aluno.nome}
+
+        const token = sign(payload, process.env.SECRET_JWT)        
+
+        res.status(200).json({Token: token})
 
     } catch (error) {
-        return res.status(500).json({ error: error, messagem: 'Algo deu errado!' })
+        return res.status(500).json({ error: error, message: 'Algo deu errado!' })
     }
 })
 
@@ -49,15 +56,15 @@ routes.post('/alunos', async (req, res) => {
         const celular = req.body.celular
 
         if (!nome) {
-            return res.status(400).json({ messagem: 'O nome é obrigatório' })
+            return res.status(400).json({ message: 'O nome é obrigatório' })
         }
 
         if (!data_nascimento) {
-            return res.status(400).json({ messagem: 'A data de nascimento é obrigatória' })
+            return res.status(400).json({ message: 'A data de nascimento é obrigatória' })
         }
 
         if (!data_nascimento.match(/\d{4}-\d{2}-\d{2}/gm)) {
-            return res.status(400).json({ messagem: 'A data de nascimento é não está no formato correto' })
+            return res.status(400).json({ message: 'A data de nascimento é não está no formato correto' })
         }
 
         const aluno = await Aluno.create({
@@ -76,12 +83,12 @@ routes.post('/alunos', async (req, res) => {
     }
 })
 
-routes.get('/alunos', async (req, res) => {
+routes.get('/alunos', auth, async (req, res) => {
     const alunos = await Aluno.findAll()
     res.json(alunos)
 })
 
-routes.get('/alunos/:id', async (req, res) => {
+routes.get('/alunos/:id', auth, async (req, res) => {
     try {
 
         const { id } = req.params
@@ -111,12 +118,12 @@ routes.post('/cursos', async (req, res) => {
         const duracao_horas = req.body.duracao_horas
 
         if (!nome) {
-            return res.status(400).json({ messagem: "O nome é obrigatório" })
+            return res.status(400).json({ message: "O nome é obrigatório" })
         }
 
         if (!(duracao_horas >= 40 && duracao_horas <= 200)) {
             return res.status(400).json({
-                messagem: "A duração do curso deve ser entre 40 e 200 horas"
+                message: "A duração do curso deve ser entre 40 e 200 horas"
             })
         }
 
@@ -181,7 +188,7 @@ routes.put('/cursos/:id', async (req, res) => {
     const curso = await Curso.findByPk(id)
 
     if (!curso) {
-        return res.status(404).json({ mensagem: 'Curso não encontrado' })
+        return res.status(404).json({ message: 'Curso não encontrado' })
     }
 
     curso.update(req.body)
