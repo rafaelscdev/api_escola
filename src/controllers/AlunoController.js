@@ -14,6 +14,29 @@ class AlunoController {
         }
     }
 
+
+    async listarUm(req, res) {
+        try {
+
+            const { id } = req.params
+
+            const aluno = await Aluno.findByPk(id)
+
+            if (!aluno) {
+                return res.status(404).json({ message: "Usuário não encontrado!" })
+            }
+
+            res.json(aluno)
+
+        } catch (error) {
+            console.log(error.message)
+            res.status(500).json({
+                error: 'Não possível listar o aluno especifico',
+                error: error
+            })
+        }
+    }
+
     async cadastrar(req, res) {
         try {
 
@@ -51,26 +74,32 @@ class AlunoController {
         }
     }
 
-    async listarUm(req, res) {
-        try {
+    async atualizar(req,res){
+        const { id } = req.params
 
-            const { id } = req.params
+    const aluno = await Aluno.findByPk(id)
 
-            const aluno = await Aluno.findByPk(id)
+    if (!aluno) {
+        return res.status(404).json({ message: 'Aluno não encontrado' })
+    }
 
-            if (!aluno) {
-                return res.status(404).json({ message: "Usuário não encontrado!" })
+    aluno.update(req.body)
+
+    await aluno.save()
+
+    res.json(aluno)
+    }
+
+    async deletar(req,res){
+        const { id } = req.params
+
+        Aluno.destroy({
+            where: {
+                id: id
             }
-
-            res.json(aluno)
-
-        } catch (error) {
-            console.log(error.message)
-            res.status(500).json({
-                error: 'Não possível listar o aluno especifico',
-                error: error
-            })
-        }
+        }) 
+    
+        res.status(204).json({})
     }
 }
 
