@@ -32,7 +32,9 @@ loginRoutes.post('/', async (req, res) => {
 
         const payload = {sub: aluno.id, email: aluno.email, nome: aluno.nome}
 
-        const token = sign(payload, process.env.SECRET_JWT)        
+        const token = sign(payload, process.env.SECRET_JWT, {
+            expiresIn: '24h'
+        })        
 
         res.status(200).json({Token: token})
 
